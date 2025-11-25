@@ -327,30 +327,22 @@ body {
 @media (max-width: 900px) {
   body {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
   }
-  .solutions-container {
-    width: 100%;
-    height: 280px;
+
+  .container, .solutions-container {
+    width: 95%;
+    max-width: 480px;
   }
 }
 
 @media (max-width: 700px) {
-  .show-pawn-input {
-    height: 50px;
-    gap: 5px;
+  body {
+    align-items: center;
   }
-  .pawn-slot {
-    min-width: 28px;
-    height: 28px;
-    font-size: 15px;
-    border-radius: 6px;
-  }
-  .pawn input {
-    padding: 12px;
-    font-size: 16px;
-  }
-  .solutions-container {
-    height: 240px;
+
+  .container, .solutions-container {
+    width: 95%;
+    max-width: 450px;
   }
 }
