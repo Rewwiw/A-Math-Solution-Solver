@@ -361,6 +361,53 @@ body {
   margin-top: 4px;
 }
 
+.solution-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #dbeafe;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+/* Number (default pawn-slot) */
+.legend-number {
+  background: linear-gradient(145deg, #1e293b, #334155);
+}
+
+/* Operator */
+.legend-op {
+  background: linear-gradient(145deg, #2563eb, #3b82f6);
+}
+
+/* Equal sign (=) */
+.legend-eq {
+  background: linear-gradient(145deg, #10b981, #34d399);
+}
+
+/* Qmark / Blank */
+.legend-qmark {
+  background: linear-gradient(145deg, #06b6d4, #22d3ee);
+}
+
+
 /* ===== Scrollbar ===== */
 .solutions-container::-webkit-scrollbar {
   width: 8px;

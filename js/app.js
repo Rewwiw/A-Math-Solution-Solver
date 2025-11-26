@@ -297,6 +297,20 @@ function renderSolutions() {
     }
   }
 
+  // 🔹 Legend แสดงความหมายแต่ละสี
+const legend = document.createElement("div");
+legend.className = "solution-legend";
+
+legend.innerHTML = `
+  <div class="legend-item"><span class="legend-box legend-number"></span> Number</div>
+  <div class="legend-item"><span class="legend-box legend-op"></span> Operator (+ - × ÷)</div>
+  <div class="legend-item"><span class="legend-box legend-eq"></span> Equal (=)</div>
+  <div class="legend-item"><span class="legend-box legend-qmark"></span> Blank / ?</div>
+`;
+
+solutionsContainer.appendChild(legend);
+
+
   // 🔹 แถบสรุปด้านบนสุด
   const summary = document.createElement("div");
   summary.className = "solution-summary";
