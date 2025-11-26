@@ -65,6 +65,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-wrap : wrap;
   gap: 8px;
   background: radial-gradient(circle at top, rgba(30, 64, 175, 0.3), rgba(15, 23, 42, 0.9));
   cursor: pointer;
@@ -337,12 +338,25 @@ body {
 }
 
 @media (max-width: 700px) {
-  body {
-    align-items: center;
+  .show-pawn-input {
+    height: auto;   /* ให้สูงตามเนื้อจริง เผื่อมี 2 แถว */
+    gap: 4px;
+    padding: 8px;
   }
 
-  .container, .solutions-container {
-    width: 95%;
-    max-width: 450px;
+  .pawn-slot {
+    min-width: 24px;
+    height: 24px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .pawn input {
+    padding: 10px;
+    font-size: 15px;
+  }
+
+  .solutions-container {
+    height: 240px;
   }
 }
