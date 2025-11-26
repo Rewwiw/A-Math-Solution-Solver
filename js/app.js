@@ -1,28 +1,11 @@
-// -----------------------------
-// ค่าคงที่ / แผนที่สำหรับขยายเบี้ยพิเศษ + set ต่าง ๆ
-// -----------------------------
-const SPECIAL_MAP = {
-  "+/-": ["+", "-"],
-  "x/÷": ["*", "/"],
-  "x": ["*"],
-  "÷": ["/"],
-  "?": [
-    "0","1","2","3","4","5","6","7","8","9",
-    "10","11","12","13","14","15","16","17","18","19","20",
-    "+","-","*","/","="
-  ]
-};
+// =============================
+// ค่าคงที่ฝั่ง UI
+// =============================
+const DEFINE_MARKS = new Set(["=", "+", "-", "*", "/"]);
 
-const DEFINE_MARKS = new Set(['=', '+', '-', '*', '/']);
-const DEFINE_UNIT = new Set(['0','1','2','3','4','5','6','7','8','9']);
-const DEFINE_TENS = new Set([
-  '10','11','12','13','14','15',
-  '16','17','18','19','20'
-]);
-
-// -----------------------------
-// DOM อ้างอิงหลัก
-// -----------------------------
+// =============================
+// DOM references
+// =============================
 const topRackDiv = document.getElementById("topRack");
 const pawnButtons = document.querySelectorAll(".pawn input");
 const controlButtons = document.querySelectorAll(".control input");
@@ -36,23 +19,64 @@ const totalSlotsInput = document.getElementById("totalSlotsInput");
 const fixSlotsRow = document.getElementById("fixSlotsRow");
 const clearTotalBtn = document.getElementById("clearTotalSlots");
 
-// -----------------------------
-// State
-// -----------------------------
-let mode = "bingo";        // "bingo" หรือ "fix"
-let filled = [];           // เบี้ยที่อยู่บนมือ (Top rack)
-let maxFilled = 9;         // limit บนมือ = 9 ตัวทุกโหมด
-let currentTarget = "top"; // "top" หรือ DOM ของ .fix-slot
+const submitBtn = document.querySelector('.control input[value="Submit"]');
 
-let totalSlots = 9;        // จำนวนช่องทั้งหมดในสมการ (Fix Position)
-let fixSlotsValues = [];   // ยาว totalSlots, เก็บค่าที่ล็อกในแต่ละตำแหน่ง
+// =============================
+// State ฝั่ง UI
+// =============================
+let mode = "bingo";          // "bingo" หรือ "fix"
+let filled = [];             // เบี้ยบนมือ
+let maxFilled = 9;           // limit = 9 ตัวทุกโหมด
+let currentTarget = "top";
 
+let totalSlots = 9;          // จำนวนช่องทั้งหมดในสมการ
+let fixSlotsValues = [];     // ค่าในช่อง fix
+let lastElapsedMs = null;   // เวลาใช้คำนวณรอบล่าสุด (ms)
+
+
+// solutions: array ของ object { tokens: [...], qPositions: [...] }
 let solutions = [];
 let shownCount = 0;
 
-// -----------------------------
-// Render Top rack
-// -----------------------------
+// สถานะการคำนวณ
+let isSolving = false;
+let lastHadSolution = null;  // null = ยังไม่รู้, true/false = รอบก่อนมี/ไม่มีคำตอบ
+
+// =============================
+// Web Worker (ตัว Solver)
+// =============================
+let solverWorker = null;
+
+if (window.Worker) {
+  solverWorker = new Worker("js/solver-worker.js");
+
+  solverWorker.onmessage = (e) => {
+    const { type, solutions: workerSolutions, elapsedMs } = e.data || {};
+    if (type === "result") {
+      isSolving = false;
+      solutions = workerSolutions || [];
+      lastElapsedMs = typeof elapsedMs === "number" ? elapsedMs : null;
+      renderSolutions();
+    }
+  };
+
+  solverWorker.onerror = (err) => {
+    console.error("Solver worker error:", err);
+    isSolving = false;
+    alert("เกิดข้อผิดพลาดในการคำนวณสมการ");
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.value = submitBtn.dataset.originalText || "Submit";
+    }
+  };
+} else {
+  alert("เบราว์เซอร์นี้ไม่รองรับ Web Worker (แนะนำใช้ Chrome/Edge เวอร์ชันใหม่)");
+}
+
+
+// =============================
+// Render Top Rack
+// =============================
 function renderTopRack() {
   topRackDiv.innerHTML = "";
   filled.forEach(v => {
@@ -63,9 +87,9 @@ function renderTopRack() {
   });
 }
 
-// -----------------------------
-// สร้างช่อง Fix Position ตามจำนวน totalSlots
-// -----------------------------
+// =============================
+// สร้างช่อง Fix Position
+// =============================
 function buildFixSlots() {
   fixSlotsRow.innerHTML = "";
   fixSlotsValues = new Array(totalSlots).fill(null);
@@ -94,23 +118,20 @@ function buildFixSlots() {
   }
 }
 
-// -----------------------------
-// เลือก target เป็น Top rack (เรียกจาก HTML)
-// -----------------------------
+// ให้ HTML เรียกได้
 function selectTopTarget() {
   currentTarget = "top";
 }
 window.selectTopTarget = selectTopTarget;
 
-// -----------------------------
-// คลิกปุ่มเบี้ย (ตัวเลข / เครื่องหมาย)
-// -----------------------------
+// =============================
+// คลิกปุ่มเบี้ย
+// =============================
 pawnButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const v = btn.value;
 
     if (currentTarget === "top") {
-      // จำกัดบนมือ 9 ตัวทุกโหมด
       if (filled.length >= maxFilled) {
         alert("ใส่เบี้ยครบแล้ว (สูงสุด 9 ตัว)");
         return;
@@ -118,7 +139,6 @@ pawnButtons.forEach(btn => {
       filled.push(v);
       renderTopRack();
     } else if (currentTarget && currentTarget.classList.contains("fix-slot")) {
-      // ใส่ค่าในช่อง Fix Position
       const idx = parseInt(currentTarget.dataset.index, 10);
       const contentDiv = currentTarget.querySelector(".pawn-slot");
       contentDiv.textContent = v;
@@ -127,16 +147,16 @@ pawnButtons.forEach(btn => {
   });
 });
 
-// -----------------------------
-// ปุ่ม Back / Clear / Submit ด้านล่าง
-// -----------------------------
+// =============================
+// ปุ่ม Back / Clear / Submit
+// =============================
 controlButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     if (btn.value === "Back") {
       filled.pop();
       renderTopRack();
     } else if (btn.value === "Clear") {
-      // เคลียร์ทั้ง Top rack + Fix slots + คำตอบ
+      // เคลียร์ Top + Fix + solution
       filled = [];
       renderTopRack();
       if (mode === "fix") {
@@ -144,6 +164,7 @@ controlButtons.forEach(btn => {
       }
       solutions = [];
       shownCount = 0;
+      lastHadSolution = null;
       solutionsContainer.innerHTML = "";
     } else if (btn.value === "Submit") {
       runAMath();
@@ -151,22 +172,22 @@ controlButtons.forEach(btn => {
   });
 });
 
-// -----------------------------
-// ปุ่ม Clear เฉพาะ "เบี้ยในช่อง Fix" แต่ไม่ล้างจำนวนช่อง
-// -----------------------------
+// =============================
+// ปุ่ม Clear เฉพาะแถว Fix (ไม่แตะจำนวนช่อง)
+// =============================
 if (clearTotalBtn) {
   clearTotalBtn.addEventListener("click", () => {
     const n = parseInt(totalSlotsInput.value, 10);
     if (!isNaN(n) && n > 0) {
       totalSlots = Math.min(n, 15);
-      buildFixSlots();   // สร้างช่อง Fix ใหม่ ว่างหมด
+      buildFixSlots();
     }
   });
 }
 
-// -----------------------------
-// เปลี่ยนโหมด Bingo 8 / Bingo Fix Position
-// -----------------------------
+// =============================
+// เปลี่ยนโหมด
+// =============================
 mode1Btn.addEventListener("click", () => {
   mode = "bingo";
   mode1Btn.classList.add("active");
@@ -186,9 +207,7 @@ mode2Btn.addEventListener("click", () => {
   currentTarget = "top";
 });
 
-// -----------------------------
-// เปลี่ยนจำนวนช่องทั้งหมดในสมการ (input number)
-// -----------------------------
+// เปลี่ยนจำนวนช่องทั้งหมดในสมการ
 totalSlotsInput.addEventListener("input", () => {
   const n = parseInt(totalSlotsInput.value, 10);
   if (!isNaN(n) && n > 0) {
@@ -198,263 +217,176 @@ totalSlotsInput.addEventListener("input", () => {
   }
 });
 
-// -----------------------------
-// ขยายเบี้ยพิเศษ เช่น +/-, x/÷, ?
-// -----------------------------
-function Expanded(pawn) {
-  let result = [[]];
-  for (const token of pawn) {
-    if (token in SPECIAL_MAP) {
-      const choices = SPECIAL_MAP[token];
-      const next = [];
-      for (const base of result) {
-        for (const c of choices) {
-          next.push([...base, c]);
-        }
-      }
-      result = next;
-    } else {
-      result = result.map(r => [...r, token]);
-    }
-  }
-  return result;
-}
-
-// -----------------------------
-// Permutations: สร้างเรียงสับเปลี่ยน (ตัด perm ซ้ำ แต่ logic เดิม)
-// -----------------------------
-function Permutations(arr) {
-  const sorted = arr.slice().sort();
-  const used = new Array(sorted.length).fill(false);
-  const result = [];
-  const path = [];
-
-  function backtrack() {
-    if (path.length === sorted.length) {
-      result.push(path.slice());
-      return;
-    }
-    for (let i = 0; i < sorted.length; i++) {
-      if (used[i]) continue;
-      // ข้ามค่าซ้ำที่ยังไม่ได้ใช้ของตัวก่อนหน้า
-      if (i > 0 && sorted[i] === sorted[i - 1] && !used[i - 1]) continue;
-
-      used[i] = true;
-      path.push(sorted[i]);
-      backtrack();
-      path.pop();
-      used[i] = false;
-    }
-  }
-
-  backtrack();
-  return result;
-}
-
-// -----------------------------
-// เติมเบี้ยลงในช่อง (fix + rack)
-// -----------------------------
-function add_pawn_js(rackPerm, locks, totalLen) {
-  const arr = new Array(totalLen).fill(null);
-
-  // ใส่ค่าที่ล็อกก่อน
-  locks.forEach(l => {
-    const pos = l.position - 1;
-    if (pos >= 0 && pos < totalLen) {
-      arr[pos] = l.value;
-    }
-  });
-
-  // เติมเบี้ยจาก rack ลงช่องที่ยังว่าง
-  let idx = 0;
-  for (let i = 0; i < totalLen; i++) {
-    if (arr[i] === null && idx < rackPerm.length) {
-      arr[i] = rackPerm[idx++];
-    }
-  }
-  return arr;
-}
-
-// -----------------------------
-// เงื่อนไขรูปแบบสมการ (กันเลขแปลก ๆ)
-// -----------------------------
-function Condition(set_condition) {
-  // ต้องมี '='
-  if (!set_condition.includes('=')) return false;
-
-  // ห้าม operator ติดกัน ยกเว้น "= -"
-  for (let i = 0; i < set_condition.length - 1; i++) {
-    const a = set_condition[i], b = set_condition[i + 1];
-    if (DEFINE_MARKS.has(a) && DEFINE_MARKS.has(b) && !(a === '=' && b === '-')) {
-      return false;
-    }
-  }
-
-  // tens + tens (10 11 → 1011) ไม่ให้
-  for (let i = 0; i < set_condition.length - 1; i++) {
-    const a = set_condition[i], b = set_condition[i + 1];
-    if (DEFINE_TENS.has(a) && DEFINE_TENS.has(b)) {
-      return false;
-    }
-  }
-
-  // unit + tens หรือ tens + unit ก็ไม่ให้ (7 17 → 717, 17 7 → 177)
-  for (let i = 0; i < set_condition.length - 1; i++) {
-    const a = set_condition[i], b = set_condition[i + 1];
-    if (DEFINE_UNIT.has(a) && DEFINE_TENS.has(b)) return false;
-    if (DEFINE_TENS.has(a) && DEFINE_UNIT.has(b)) return false;
-  }
-
-  // จำกัดจำนวนเลขหลักเดียวต่อเนื่อง
-  let count = 0;
-  for (const x of set_condition) {
-    if (DEFINE_UNIT.has(x)) count++;
-    else count = 0;
-    if (count > 3) return false;
-  }
-
-  // แยกเลขมาตรวจ 0 นำหน้า
-  let numbers = [];
-  let temp = "";
-  for (const x of set_condition) {
-    if (!DEFINE_MARKS.has(x)) {
-      temp += x;
-    } else {
-      if (temp) {
-        numbers.push(temp);
-        temp = "";
-      }
-    }
-  }
-  if (temp) numbers.push(temp);
-
-  for (const num of numbers) {
-    if (num.length >= 2 && num[0] === '0') return false;
-  }
-
-  // กัน /0 และ -0 แบบง่าย
-  for (let i = 0; i < set_condition.length - 1; i++) {
-    if (set_condition[i] === '/' && set_condition[i + 1] === '0') return false;
-  }
-  for (let i = 0; i < set_condition.length - 1; i++) {
-    if (set_condition[i] === '-' && set_condition[i + 1] === '0') return false;
-  }
-
-  // ห้ามเริ่มด้วย operator (ยกเว้น '-') และห้ามจบด้วย operator
-  if ((DEFINE_MARKS.has(set_condition[0]) && set_condition[0] !== '-') ||
-      DEFINE_MARKS.has(set_condition[set_condition.length - 1])) {
-    return false;
-  }
-
-  return true;
-}
-
-// -----------------------------
-// เช็คว่าแต่ละฝั่งของ '=' ให้ค่าตัวเลขเท่ากันมั้ย
-// -----------------------------
-function Check_Equation(tokens) {
-  const expr = tokens.join("");
-  const parts = expr.split("=");
-  try {
-    const values = parts.map(p =>
-      Function('"use strict";return (' + p + ")")()
-    );
-    const first = values[0];
-    return values.every(v => Math.abs(v - first) < 1e-9);
-  } catch {
-    return false;
-  }
-}
-
-// -----------------------------
-// แต่ง * / ให้เป็น × ÷ เพื่อแสดงผลสวย ๆ
-// -----------------------------
+// =============================
+// Beautify
+// =============================
 function beautify(expr) {
   return expr.replace(/\*/g, "×").replace(/\//g, "÷");
 }
 
-// -----------------------------
-// Run A-Math (หาคำตอบทั้งหมด)
-// -----------------------------
+function beautifyToken(t) {
+  if (t === "*") return "×";
+  if (t === "/") return "÷";
+  return t;
+}
+
+// =============================
+// แสดงสถานะกำลังคำนวณ
+// =============================
+function showSolvingStatus() {
+  solutionsContainer.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = "solution-item";
+  div.style.fontWeight = "bold";
+  div.textContent = "กำลังค้นหาคำตอบ...";
+  solutionsContainer.appendChild(div);
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.dataset.originalText = submitBtn.value;
+    submitBtn.value = "Solving...";
+  }
+}
+
+// =============================
+// เริ่มคำนวณ (ส่งงานให้ Worker)
+// =============================
 function runAMath() {
-  solutions = [];
-  shownCount = 0;
+  if (!solverWorker) {
+    alert("ไม่รองรับ Web Worker");
+    return;
+  }
+
+  if (isSolving) return;
 
   if (filled.length === 0) {
     alert("กรุณาใส่เบี้ยบนมืออย่างน้อย 1 ตัว");
     return;
   }
 
-  let locks = [];
-  let totalLen;
+  isSolving = true;
+  solutions = [];
+  shownCount = 0;
 
-  if (mode === "fix") {
-    totalLen = totalSlots;
-    for (let i = 0; i < totalSlots; i++) {
-      const v = fixSlotsValues[i];
-      if (v && v !== "") {
-        locks.push({ position: i + 1, value: v });
-      }
-    }
-  } else {
-    totalLen = filled.length;
-  }
+  showSolvingStatus();
 
-  const uniq = new Set();
+  const payload = {
+    mode,
+    filled,
+    totalSlots,
+    fixSlotsValues
+  };
 
-  if (mode === "fix") {
-    const perms = Permutations(filled);
-    for (const perm of perms) {
-      const seq = add_pawn_js(perm, locks, totalLen);
-      const expanded = Expanded(seq);
-      for (const exp of expanded) {
-        if (Condition(exp) && Check_Equation(exp)) {
-          uniq.add(exp.join(""));
-        }
-      }
-    }
-  } else {
-    // Bingo 8 → ใช้เบี้ยบนมืออย่างเดียว
-    const perms = Permutations(filled);
-    for (const perm of perms) {
-      const expanded = Expanded(perm);
-      for (const exp of expanded) {
-        if (Condition(exp) && Check_Equation(exp)) {
-          uniq.add(exp.join(""));
-        }
-      }
-    }
-  }
-
-  solutions = Array.from(uniq);
-  renderSolutions();
+  solverWorker.postMessage({ type: "solve", payload });
 }
 
-// -----------------------------
-// แสดงคำตอบในฝั่งขวา
-// -----------------------------
+// =============================
+// Render Solutions
+// =============================
 function renderSolutions() {
   solutionsContainer.innerHTML = "";
 
-  if (solutions.length === 0) {
+  // คืนปุ่ม Submit ให้กดได้อีกครั้ง
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    if (submitBtn.dataset.originalText) {
+      submitBtn.value = submitBtn.dataset.originalText;
+    } else {
+      submitBtn.value = "Submit";
+    }
+  }
+
+  // 🔹 แถบสรุปด้านบนสุด
+  const summary = document.createElement("div");
+  summary.className = "solution-summary";
+
+  const count = solutions ? solutions.length : 0;
+  let text = `Total solutions: ${count}`;
+
+  if (typeof lastElapsedMs === "number") {
+    const sec = (lastElapsedMs / 1000).toFixed(2);
+    text += ` (in ${sec}s)`;
+  }
+
+  summary.textContent = text;
+  solutionsContainer.appendChild(summary);
+
+  // ถ้าไม่มีคำตอบ
+  if (!solutions || solutions.length === 0) {
     const div = document.createElement("div");
     div.className = "solution-item";
     div.style.color = "red";
     div.style.fontWeight = "bold";
-    div.textContent = "No Solution";
+
+    if (lastHadSolution === false) {
+      div.textContent = "Still No Solution";
+    } else {
+      div.textContent = "No Solution";
+    }
+
     solutionsContainer.appendChild(div);
+    lastHadSolution = false;
     return;
   }
+
+  lastHadSolution = true;
 
   const maxShow = 20;
   const show = solutions.slice(0, maxShow);
   shownCount = show.length;
 
-  show.forEach(s => {
-    const div = document.createElement("div");
-    div.className = "solution-item";
-    div.textContent = beautify(s);
-    solutionsContainer.appendChild(div);
+  const makeItem = (solutionObj) => {
+    const { tokens, qPositions } = solutionObj;
+
+    const item = document.createElement("div");
+    item.className = "solution-item";
+
+    const row = document.createElement("div");
+    row.className = "solution-row";
+
+    tokens.forEach((t, idx) => {
+      const slot = document.createElement("div");
+      slot.className = "pawn-slot solution-pawn";
+
+      const isFromQ = qPositions.includes(idx);
+
+      if (DEFINE_MARKS.has(t)) {
+        slot.classList.add("op");
+      }
+
+      if (t === "=") {
+        slot.classList.remove("op");
+        if (isFromQ) {
+          slot.classList.add("qmark");
+        } else {
+          slot.classList.add("eq");
+        }
+      } else if (isFromQ) {
+        slot.classList.remove("op");
+        slot.classList.add("qmark");
+      }
+
+      slot.textContent = beautifyToken(t);
+      row.appendChild(slot);
+    });
+
+    item.appendChild(row);
+
+    const textLine = document.createElement("div");
+    textLine.style.fontSize = "14px";
+    textLine.style.opacity = "0.8";
+    textLine.style.marginTop = "2px";
+    textLine.textContent = beautify(tokens.join(""));
+
+    item.appendChild(textLine);
+    return item;
+  };
+
+  // แสดงชุดแรก
+  show.forEach(sol => {
+    const item = makeItem(sol);
+    solutionsContainer.appendChild(item);
   });
 
   const actions = document.createElement("div");
@@ -467,12 +399,12 @@ function renderSolutions() {
     moreBtn.addEventListener("click", () => {
       const more = solutions.slice(shownCount, shownCount + 10);
       shownCount += more.length;
-      more.forEach(s => {
-        const div = document.createElement("div");
-        div.className = "solution-item";
-        div.textContent = beautify(s);
-        solutionsContainer.insertBefore(div, actions);
+
+      more.forEach(sol => {
+        const item = makeItem(sol);
+        solutionsContainer.insertBefore(item, actions);
       });
+
       if (shownCount >= solutions.length) {
         moreBtn.remove();
       }
@@ -484,7 +416,9 @@ function renderSolutions() {
   solutionsContainer.appendChild(actions);
 }
 
-// -----------------------------
+
+// =============================
 // Init
-// -----------------------------
+// =============================
 renderTopRack();
+if (mode === "fix") buildFixSlots();

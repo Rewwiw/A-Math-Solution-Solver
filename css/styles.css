@@ -65,8 +65,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-wrap : wrap;
   gap: 8px;
+  flex-wrap: wrap; /* ให้ขึ้นหลายแถวได้ */
   background: radial-gradient(circle at top, rgba(30, 64, 175, 0.3), rgba(15, 23, 42, 0.9));
   cursor: pointer;
 }
@@ -85,6 +85,7 @@ body {
     inset 0 0 6px rgba(15, 23, 42, 0.8),
     0 2px 4px rgba(0, 0, 0, 0.7);
   color: #e5edf7;
+  
 }
 
 /* ===== Fix Position Block ===== */
@@ -101,7 +102,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
@@ -122,7 +123,7 @@ body {
   color: #e5edf7;
 }
 
-/* ปุ่ม Clear จำนวนตัวทั้งหมดในสมการ (เป็นสีแดงตามคำขอ) */
+/* ปุ่ม Clear เฉพาะแถว Fix */
 .small-btn {
   padding: 4px 10px;
   font-size: 13px;
@@ -138,8 +139,7 @@ body {
 }
 
 .fix-slots-container {
-    padding: 5px;
-    overflow-x: auto;
+  overflow-x: auto;
 }
 
 .fix-slots-row {
@@ -183,7 +183,7 @@ body {
   box-shadow: none;
 }
 
-/* ===== Pawn pads ===== */
+/* ===== Pawn pads (ปุ่มเบี้ย) ===== */
 .pawn {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -214,7 +214,7 @@ body {
   grid-column: span 2;
 }
 
-/* ===== Control buttons (Back / Clear / Submit) ===== */
+/* ===== Control buttons ===== */
 .control {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -234,12 +234,12 @@ body {
   transition: 0.2s;
 }
 
-/* Back = เทาเข้มนิด ๆ */
+/* Back = เทา */
 .control input[value="Back"] {
   background: linear-gradient(135deg, #4b5563, #111827);
 }
 
-/* Clear = แดง (ตามที่กำหนด) */
+/* Clear = แดง */
 .control input[value="Clear"] {
   background: #dc3545;
 }
@@ -261,7 +261,8 @@ body {
   border-radius: 20px;
   height: 560px;
   overflow-y: auto;
-  width: 320px;
+  width: 400px;
+  align-items: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
@@ -269,6 +270,7 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.7);
 }
 
+/* การ์ดคำตอบ */
 .solution-item {
   padding: 10px 15px;
   border-radius: 12px;
@@ -286,7 +288,55 @@ body {
   background: linear-gradient(145deg, #1e293b, #1d4ed8);
 }
 
-/* ปุ่มดูเพิ่มเติม / ปุ่มอื่นๆ ใน solution actions */
+/* แถวเบี้ยในคำตอบ */
+.solution-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+/* pawn-slot ในคำตอบ (ย่อเล็กลง) */
+.solution-pawn {
+  min-width: 30px;
+  height: 30px;
+  font-size: 20px;
+  border-radius: 8px;
+}
+
+
+/* operator (+ - × ÷) */
+.solution-pawn.op {
+  background: linear-gradient(145deg, #2563eb, #3b82f6);
+  color: #e8f3ff;
+}
+
+/* = */
+.solution-pawn.eq {
+  background: linear-gradient(145deg, #10b981, #34d399);
+  color: #eafff7;
+}
+
+/* ? สีเฉพาะ (Teal Aqua Highlight) */
+.solution-pawn.qmark {
+  background: linear-gradient(145deg, #06b6d4, #22d3ee);
+  color: #e9fcff;
+}
+
+.solution-summary {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  color: #e5edf7;
+}
+
+
+
+/* ปุ่มดูเพิ่มเติม */
 .show-more-btn {
   margin-top: 8px;
   padding: 10px 14px;
@@ -331,15 +381,26 @@ body {
     align-items: center;
   }
 
-  .container, .solutions-container {
+  .container,
+  .solutions-container {
     width: 95%;
     max-width: 480px;
   }
 }
 
 @media (max-width: 700px) {
+  body {
+    align-items: center;
+  }
+
+  .container,
+  .solutions-container {
+    width: 95%;
+    max-width: 450px;
+  }
+
   .show-pawn-input {
-    height: auto;   /* ให้สูงตามเนื้อจริง เผื่อมี 2 แถว */
+    height: auto;
     gap: 4px;
     padding: 8px;
   }
