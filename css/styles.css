@@ -448,15 +448,16 @@ body {
   }
     .show-pawn-input {
     min-height: 40px;      /* กันย่อเกินไป ก่อนมีเบี้ย */
-    gap: 6px;              /* ระยะช่องระหว่างเบี้ย */
-    flex-wrap: wrap;       /* ให้ขึ้นหลายแถวทันที */
-    align-items: flex-start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
   }
 
   .pawn-slot {
-    min-width: 24px;
-    height: 24px;
-    font-size: 14px;
+    min-width: 30px;
+    height: 30px;
+    font-size: 20px;
     border-radius: 6px;
   }
 
