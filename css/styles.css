@@ -400,7 +400,7 @@ body {
   }
 
   .show-pawn-input {
-    height: auto;
+    height: 40px;
     gap: 4px;
     padding: 8px;
   }
