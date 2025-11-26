@@ -399,12 +399,6 @@ body {
     max-width: 450px;
   }
 
-  .show-pawn-input {
-    height: 40px;
-    gap: 4px;
-    padding: 8px;
-  }
-
   .pawn-slot {
     min-width: 24px;
     height: 24px;
