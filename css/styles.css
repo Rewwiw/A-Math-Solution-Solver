@@ -398,6 +398,14 @@ body {
     width: 95%;
     max-width: 450px;
   }
+    .show-pawn-input {
+    height: auto;          /* ให้สูงตามเนื้อหา */
+    min-height: 70px;      /* กันย่อเกินไป ก่อนมีเบี้ย */
+    padding: 10px;         /* เผื่อพื้นที่ให้พอดี */
+    gap: 6px;              /* ระยะช่องระหว่างเบี้ย */
+    flex-wrap: wrap;       /* ให้ขึ้นหลายแถวทันที */
+    align-items: flex-start;
+  }
 
   .pawn-slot {
     min-width: 24px;
