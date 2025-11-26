@@ -400,7 +400,6 @@ body {
   }
     .show-pawn-input {
     min-height: 40px;      /* กันย่อเกินไป ก่อนมีเบี้ย */
-    padding: 10px;         /* เผื่อพื้นที่ให้พอดี */
     gap: 6px;              /* ระยะช่องระหว่างเบี้ย */
     flex-wrap: wrap;       /* ให้ขึ้นหลายแถวทันที */
     align-items: flex-start;
