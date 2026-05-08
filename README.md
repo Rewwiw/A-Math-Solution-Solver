@@ -3,7 +3,8 @@
 รองรับทั้งโหมด **Bingo 8** และ **Fix Position**
 
 Live Demo (GitHub Pages):  
-👉 https://rewwiw.github.io/A-Math-Solution-Solver/
+👉 (V1) https://rewwiw.github.io/A-Math-Solution-Solver/
+👉 (V2) https://a-math-solution-solver.vercel.app/
 
 ---
 
