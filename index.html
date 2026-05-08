@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A-Math Solution</title>
+  <title>A-Math Solution Solver</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script defer src="js/app.js"></script>
 </head>
 <body>
@@ -15,68 +16,45 @@
     <button id="mode2">Bingo Fix Position</button>
   </div>
 
-  <!-- แถบเบี้ยบนมือ (Top rack) -->
-  <div class="show-pawn-input" id="topRack" onclick="selectTopTarget()"></div>
+  <div class="show-pawn-input active-slot" id="topRack" onclick="selectTopTarget()"></div>
 
-  <!-- กล่องตั้งค่า Fix Position -->
   <div id="fixSettings">
-<div class="total-slots-row">
-  <label for="totalSlotsInput">จำนวนตัวทั้งหมดในสมการ:</label>
-  <input type="number" id="totalSlotsInput" min="1" max="15" value="9">
-  <button id="clearTotalSlots" class="small-btn">Clear</button>
-</div>
-
+    <div class="total-slots-row">
+      <label for="totalSlotsInput">จำนวนตัวทั้งหมดในสมการ:</label>
+      <input type="number" id="totalSlotsInput" min="1" max="15" value="9">
+      <button id="clearTotalSlots" class="small-btn">Clear</button>
+    </div>
     <div class="fix-slots-container">
       <div id="fixSlotsRow" class="fix-slots-row"></div>
     </div>
   </div>
 
-  <!-- ปุ่มเบี้ย -->
   <div class="pawn">
-    <input type="button" value="1">
-    <input type="button" value="2">
-    <input type="button" value="3">
-    <input type="button" value="4">
-    <input type="button" value="5">
-    <input type="button" value="+">
+    <input type="button" value="1"> <input type="button" value="2">
+    <input type="button" value="3"> <input type="button" value="4">
+    <input type="button" value="5"> <input type="button" value="+">
   </div>
-
   <div class="pawn">
-    <input type="button" value="6">
-    <input type="button" value="7">
-    <input type="button" value="8">
-    <input type="button" value="9">
-    <input type="button" value="10">
-    <input type="button" value="-">
+    <input type="button" value="6"> <input type="button" value="7">
+    <input type="button" value="8"> <input type="button" value="9">
+    <input type="button" value="10"> <input type="button" value="-">
   </div>
-
   <div class="pawn">
-    <input type="button" value="11">
-    <input type="button" value="12">
-    <input type="button" value="13">
-    <input type="button" value="14">
-    <input type="button" value="15">
-    <input type="button" value="x">
+    <input type="button" value="11"> <input type="button" value="12">
+    <input type="button" value="13"> <input type="button" value="14">
+    <input type="button" value="15"> <input type="button" value="x">
   </div>
-
   <div class="pawn">
-    <input type="button" value="16">
-    <input type="button" value="17">
-    <input type="button" value="18">
-    <input type="button" value="19">
-    <input type="button" value="20">
-    <input type="button" value="÷">
+    <input type="button" value="16"> <input type="button" value="17">
+    <input type="button" value="18"> <input type="button" value="19">
+    <input type="button" value="20"> <input type="button" value="÷">
   </div>
-
   <div class="pawn">
     <input type="button" value="0" class="zero">
-    <input type="button" value="+/-">
-    <input type="button" value="x/÷">
-    <input type="button" value="?">
-    <input type="button" value="=">
+    <input type="button" value="+/-"> <input type="button" value="x/÷">
+    <input type="button" value="?"> <input type="button" value="=">
   </div>
 
-  <!-- ปุ่มควบคุม -->
   <div class="control">
     <input type="button" value="Back">
     <input type="button" value="Clear">
@@ -84,7 +62,9 @@
   </div>
 </div>
 
-<div class="solutions-container" id="solutionsContainer"></div>
+<div class="solutions-container" id="solutionsContainer">
+  <div style="text-align:center; opacity:0.5; margin-top: 40%;">ใส่เบี้ยแล้วกด Submit เพื่อหาคำตอบ</div>
+</div>
 
 </body>
 </html>

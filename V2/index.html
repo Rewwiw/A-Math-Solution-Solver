@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A-Math Solution Pro</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav class="app-nav">
+    <a class="app-nav__brand" href="index.html">
+      <span style="color: #0ea5e9;">A-Math</span> Solution Pro
+    </a>
+    <div class="app-nav__versions">
+      <a class="app-nav__link is-active" href="#">v1.0.2 (Fast Engine)</a>
+    </div>
+  </nav>
+
+  <div class="main-wrapper">
+    <div class="container">
+      
+      <div class="mode-toggle">
+        <button id="mode1" class="active">Bingo 8</button>
+        <button id="mode2">Fix Position</button>
+      </div>
+
+      <div class="section-label">Your Rack <span>(Max 15 tiles)</span></div>
+      <div class="show-pawn-input" id="topDisplay" onclick="selectTopTarget()"></div>
+
+      <div class="filter-card">
+        <label>Minimum tiles to use:</label>
+        <div class="input-wrapper">
+          <input type="number" id="minTileInput" min="1" max="15" value="1">
+          <span>tiles</span>
+        </div>
+      </div>
+
+      <div id="mode2Panel" style="display:none;">
+        <div class="info-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          Define known tile orders, alternating with empty slots.
+        </div>
+        
+        <div class="segment-builder" id="segmentBuilder"></div>
+        
+        <div class="seg-controls">
+          <button class="btn-action add" onclick="addSegment()">+ Add Group</button>
+          <button class="btn-action remove" onclick="removeSegment()">− Remove Last</button>
+        </div>
+
+        <div class="preview-section">
+          <div class="section-label">Board Preview <span>(Click empty slot to cycle bonus)</span></div>
+          <div class="seq-preview-wrap" id="seqPreview"></div>
+        </div>
+      </div>
+
+      <div class="section-label mt-3">Tile Pad</div>
+      <div class="pawn" id="pawnPad"></div>
+
+      <div class="control-grid">
+        <button class="btn-ctrl back" id="btnBack">Back</button>
+        <button class="btn-ctrl clear" id="btnClear">Clear</button>
+        <button class="btn-ctrl submit" id="btnSubmit">Solve</button>
+      </div>
+    </div>
+
+    <div class="solutions-container" id="solutionsContainer">
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        <p>Your solutions will appear here</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <div class="loading-pct" id="loadingPct">0%</div>
+      <div class="loading-bar-track">
+        <div class="loading-bar-fill" id="loadingBarFill"></div>
+      </div>
+      <div class="loading-detail" id="loadingDetail">Analyzing permutations...</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
