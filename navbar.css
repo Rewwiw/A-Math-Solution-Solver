@@ -1,0 +1,328 @@
+/* ═══════════════════════════════════════════════
+   navbar.css  —  Shared Glassmorphic Navigation
+   Palette:
+     Darkest Tones: #051F20, #0B2B26, #163832
+     Mid-Tones:     #235347, #8EB69B
+     Lightest Tone: #DAF1DE
+   ═══════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Kanit:wght@400;600;700;800&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --nav-h:       56px;
+  
+  /* Color Palette */
+  --c-dark-1:    #051F20;
+  --c-dark-2:    #0B2B26;
+  --c-dark-3:    #163832;
+  --c-mid-1:     #235347;
+  --c-mid-2:     #8EB69B;
+  --c-light:     #DAF1DE;
+
+  --nav-bg:      rgba(218, 241, 222, 0.45);
+  --nav-border:  rgba(142, 182, 155, 0.40);
+  --text-body:   #051F20;
+  --text-muted:  #235347;
+  --text-faint:  #8EB69B;
+
+  /* Font Themes (Default: Style 1 - Modern Tech Glass) */
+  --font-title:  "Outfit", "Plus Jakarta Sans", "Prompt", sans-serif;
+  --font-body:   "Plus Jakarta Sans", "Prompt", sans-serif;
+  --font-math:   "Prompt", "Kanit", sans-serif;
+}
+
+/* ── Style 1: Modern Tech & Pure Glass ── */
+[data-font="modern"] {
+  --font-title:  "Outfit", "Plus Jakarta Sans", "Prompt", sans-serif;
+  --font-body:   "Plus Jakarta Sans", "Prompt", sans-serif;
+  --font-math:   "Prompt", "Kanit", sans-serif;
+}
+
+/* ── Style 2: Editorial Luxury & Classic Serif ── */
+[data-font="editorial"] {
+  --font-title:  "DM Serif Display", "Kanit", serif;
+  --font-body:   "DM Sans", "Kanit", sans-serif;
+  --font-math:   "Kanit", sans-serif;
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  padding-top: var(--nav-h);
+}
+
+/* ── Frosted Glass Navigation Bar (Morning Dew Glassmorphism) ── */
+.app-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9998;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(15px) saturate(160%);
+  -webkit-backdrop-filter: blur(15px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.60),
+    inset 0 0 12px 0 rgba(255, 255, 255, 0.15),
+    0 8px 32px 0 rgba(5, 31, 32, 0.10);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+/* ── Brand ── */
+.app-nav__brand {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  color: #051F20;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.app-nav__brand:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.brand-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-dark-2), var(--c-mid-1));
+  box-shadow: 0 0 8px rgba(35, 83, 71, 0.6);
+}
+
+/* ── Nav Right Actions ── */
+.app-nav__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Nav Links Container ── */
+.app-nav__versions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 4px 6px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.50),
+    0 4px 16px rgba(5, 31, 32, 0.06);
+}
+
+.app-nav__link {
+  font-size: 0.80rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #051F20;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.app-nav__link:hover {
+  color: #051F20;
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: 0 2px 8px rgba(5, 31, 32, 0.08);
+}
+
+.app-nav__link.is-active {
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #051F20, #0B2B26);
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(11, 43, 38, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ── Theme Toggle Button ── */
+.theme-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.25s ease;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.60),
+    0 4px 16px rgba(5, 31, 32, 0.08);
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.10) rotate(15deg);
+  background: rgba(255, 255, 255, 0.30);
+  border-color: rgba(255, 255, 255, 0.40);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.92);
+}
+
+/* ── DEV TOOLS: Font Toggle Button ── */
+.font-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  color: #051F20;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.60),
+    0 4px 16px rgba(5, 31, 32, 0.08);
+  transition: all 0.25s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.font-toggle-btn:hover {
+  transform: translateY(-1px) scale(1.04);
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.font-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.font-toggle-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.font-toggle-label {
+  letter-spacing: 0.01em;
+}
+
+/* ── Dark Theme Overrides for Navbar ── */
+[data-theme="dark"] .app-nav {
+  background: rgba(5, 31, 32, 0.40);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 12px 0 rgba(255, 255, 255, 0.04),
+    0 8px 32px 0 rgba(0, 0, 0, 0.40);
+}
+
+[data-theme="dark"] .app-nav__brand {
+  color: #DAF1DE;
+}
+
+[data-theme="dark"] .brand-dot {
+  background: linear-gradient(135deg, var(--c-mid-1), var(--c-mid-2));
+  box-shadow: 0 0 10px rgba(142, 182, 155, 0.6);
+}
+
+[data-theme="dark"] .app-nav__versions {
+  background: rgba(11, 43, 38, 0.55);
+  border-color: rgba(142, 182, 155, 0.20);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .app-nav__link {
+  color: #8EB69B;
+}
+
+[data-theme="dark"] .app-nav__link:hover {
+  color: #DAF1DE;
+  background: rgba(22, 56, 50, 0.70);
+  border-color: rgba(142, 182, 155, 0.30);
+}
+
+[data-theme="dark"] .app-nav__link.is-active {
+  background: linear-gradient(135deg, var(--c-mid-1), var(--c-dark-3));
+  color: #DAF1DE;
+  border-color: rgba(142, 182, 155, 0.35);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+  background: rgba(11, 43, 38, 0.75);
+  border-color: rgba(142, 182, 155, 0.25);
+  color: #DAF1DE;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .theme-toggle-btn:hover {
+  background: rgba(22, 56, 50, 0.95);
+  border-color: var(--c-mid-2);
+}
+
+[data-theme="dark"] .font-toggle-btn {
+  background: rgba(11, 43, 38, 0.75);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #DAF1DE;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .font-toggle-btn:hover {
+  background: rgba(22, 56, 50, 0.95);
+  border-color: rgba(255, 255, 255, 0.30);
+}
+
+/* ── Responsive ── */
+@media (max-width: 540px) {
+  .app-nav {
+    padding: 0 14px;
+  }
+  .app-nav__brand {
+    font-size: 0.88rem;
+  }
+  .app-nav__right {
+    gap: 8px;
+  }
+  .app-nav__versions {
+    gap: 3px;
+    padding: 3px 4px;
+  }
+  .app-nav__link {
+    padding: 5px 8px;
+    font-size: 0.70rem;
+  }
+  .theme-toggle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}

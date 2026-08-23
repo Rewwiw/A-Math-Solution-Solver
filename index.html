@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A-Math Solution Solver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display:ital@0;1&family=Kanit:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="navbar.css">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Project Color Palette */
+      --c-dark-1:      #051F20;
+      --c-dark-2:      #0B2B26;
+      --c-dark-3:      #163832;
+      --c-mid-1:       #235347;
+      --c-mid-2:       #8EB69B;
+      --c-light:       #DAF1DE;
+
+      --glass-bg:        rgba(255, 255, 255, 0.65);
+      --glass-bg-hover:  rgba(255, 255, 255, 0.88);
+      --glass-bg-card:   rgba(255, 255, 255, 0.72);
+      --glass-border:    rgba(142, 182, 155, 0.40);
+      --glass-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+      --glass-shadow:    0 16px 40px rgba(5, 31, 32, 0.08);
+
+      --radius-sm:     10px;
+      --radius-md:     16px;
+      --radius-lg:     24px;
+      --radius-xl:     28px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-image: 
+        linear-gradient(135deg, rgba(230, 246, 234, 0.85) 0%, rgba(246, 252, 247, 0.80) 40%, rgba(222, 243, 228, 0.88) 100%),
+        url("BG.png");
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      color: #051F20;
+    }
+
+    /* ── Ambient Glowing Orbs in Background ── */
+    .ambient-glow {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.65;
+      animation: floatGlow 14s ease-in-out infinite alternate;
+    }
+    .ambient-glow-1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(35, 83, 71, 0.25) 0%, rgba(142, 182, 155, 0.15) 55%, transparent 70%);
+      top: -80px;
+      left: 10%;
+    }
+    .ambient-glow-2 {
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(11, 43, 38, 0.20) 0%, rgba(218, 241, 222, 0.45) 60%, transparent 70%);
+      bottom: -120px;
+      right: 5%;
+      animation-delay: -7s;
+    }
+    .ambient-glow-3 {
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(142, 182, 155, 0.28) 0%, rgba(255, 255, 255, 0) 70%);
+      top: 40%;
+      left: -100px;
+      animation-delay: -3.5s;
+    }
+
+    @keyframes floatGlow {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(30px, 35px) scale(1.08); }
+      100% { transform: translate(-25px, 20px) scale(0.95); }
+    }
+
+    /* Subtle dot grid pattern */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: radial-gradient(circle, rgba(22, 56, 50, 0.07) 1.2px, transparent 1.2px);
+      background-size: 32px 32px;
+    }
+
+    /* ── Page Layout ── */
+    .page-container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 50px 24px 80px;
+      animation: fadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Hero Section ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #051F20;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(15px) saturate(160%);
+      -webkit-backdrop-filter: blur(15px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: 99px;
+      padding: 6px 20px;
+      margin-bottom: 20px;
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.60),
+        inset 0 0 12px 0 rgba(255, 255, 255, 0.15),
+        0 8px 32px 0 rgba(5, 31, 32, 0.10);
+    }
+
+    .hero-title {
+      font-family: var(--font-title);
+      font-size: clamp(2.6rem, 6.8vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #051F20;
+      margin-bottom: 18px;
+      max-width: 800px;
+    }
+
+    [data-font="editorial"] .hero-title {
+      font-family: "DM Serif Display", "Kanit", serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      background: linear-gradient(135deg, #051F20 0%, #163832 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    [data-font="modern"] .hero-title em {
+      font-style: normal;
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: #0B2B26;
+      line-height: 1.70;
+      max-width: 580px;
+      margin: 0 auto 32px;
+    }
+
+    /* ── Hero 8-Tile Bingo Equation Showcase (Morning Dew Glassmorphism) ── */
+    .hero-showcase {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(15px) saturate(160%);
+      -webkit-backdrop-filter: blur(15px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: var(--radius-lg);
+      padding: 16px 22px;
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.60),
+        inset 0 0 14px 0 rgba(255, 255, 255, 0.15),
+        0 8px 32px 0 rgba(5, 31, 32, 0.10);
+      flex-wrap: wrap;
+      justify-content: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hero-showcase:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.80),
+        0 14px 40px rgba(5, 31, 32, 0.14);
+    }
+
+    .showcase-tiles {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mini-tile {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.40);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 800;
+      font-family: "Kanit", sans-serif;
+      color: #051F20;
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.70),
+        0 3px 10px rgba(5, 31, 32, 0.06);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      transition: all 0.2s ease;
+    }
+
+    .mini-tile.gold {
+      background: linear-gradient(135deg, rgba(254, 240, 138, 0.90), rgba(245, 158, 11, 0.95));
+      border-color: rgba(255, 255, 255, 0.9);
+      color: #051F20;
+    }
+
+    .mini-tile .tile-pt {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #051F20;
+    }
+
+    .showcase-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 1.5px solid rgba(35, 83, 71, 0.35);
+      padding-left: 16px;
+    }
+
+    .showcase-score {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #051F20;
+      font-family: "Kanit", sans-serif;
+    }
+
+    .showcase-bingo-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: white;
+      background: linear-gradient(135deg, #051F20, #0B2B26);
+      padding: 4px 10px;
+      border-radius: 99px;
+      box-shadow: 0 2px 8px rgba(11, 43, 38, 0.40);
+    }
+
+    /* ── Section Header ── */
+    .section-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      font-family: "Kanit", sans-serif;
+      color: #051F20;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── 2-Column Version Cards Grid ── */
+    .version-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .version-card {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: var(--radius-xl);
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      backdrop-filter: blur(15px) saturate(160%);
+      -webkit-backdrop-filter: blur(15px) saturate(160%);
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.60),
+        inset 0 0 14px 0 rgba(255, 255, 255, 0.15),
+        0 8px 32px 0 rgba(5, 31, 32, 0.10);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .version-card.featured {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.70),
+        inset 0 0 16px 0 rgba(255, 255, 255, 0.20),
+        0 8px 32px 0 rgba(5, 31, 32, 0.12);
+    }
+
+    .version-card:hover {
+      transform: translateY(-6px);
+      background: rgba(255, 255, 255, 0.30);
+      border-color: rgba(255, 255, 255, 0.45);
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.85),
+        0 16px 48px rgba(5, 31, 32, 0.15);
+    }
+
+    .card-top-banner {
+      height: 6px;
+      width: 100%;
+      background: linear-gradient(90deg, var(--c-dark-2), var(--c-mid-1), var(--c-mid-2));
+    }
+
+    .card-content {
+      padding: 34px 30px 30px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .card-tag-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .card-version-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #051F20;
+    }
+
+    .badge-featured {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: white;
+      background: linear-gradient(135deg, var(--c-dark-2), var(--c-mid-1));
+      border-radius: 99px;
+      padding: 3px 12px;
+      box-shadow: 0 2px 8px rgba(11, 43, 38, 0.30);
+    }
+
+    .card-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      font-family: "Kanit", sans-serif;
+      color: #051F20;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #0B2B26;
+      line-height: 1.65;
+      margin-bottom: 26px;
+    }
+
+    .card-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      font-family: "Kanit", sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.40);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      color: #051F20;
+      border: 1.5px solid rgba(35, 83, 71, 0.40);
+      box-shadow: 0 4px 12px rgba(5, 31, 32, 0.06);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #051F20, #0B2B26);
+      color: white;
+      box-shadow: 0 6px 18px rgba(11, 43, 38, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .version-card:hover .btn-secondary {
+      background: linear-gradient(135deg, #051F20, #0B2B26);
+      color: white;
+      border-color: transparent;
+      transform: translateY(-1px);
+    }
+
+    .version-card:hover .btn-primary {
+      filter: brightness(1.10);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(11, 43, 38, 0.45);
+    }
+
+    /* ── Footer ── */
+    .page-footer {
+      text-align: center;
+      padding: 24px 20px 10px;
+      font-size: 0.85rem;
+      color: #051F20;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Responsive Queries ── */
+    @media (max-width: 768px) {
+      .version-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-title {
+        font-size: 2.8rem;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page-container {
+        padding: 36px 16px 60px;
+      }
+      .hero-title {
+        font-size: 2.2rem;
+      }
+      .hero-desc {
+        font-size: 0.92rem;
+      }
+      .hero-showcase {
+        padding: 14px 16px;
+        gap: 12px;
+      }
+      .mini-tile {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      .card-content {
+        padding: 24px 20px;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Dark Theme Rules — index.html (High Contrast)
+       ══════════════════════════════════════════════════════════════ */
+
+    [data-theme="dark"] body {
+      background-image: 
+        linear-gradient(135deg, rgba(5, 31, 32, 0.92) 0%, rgba(11, 43, 38, 0.88) 50%, rgba(22, 56, 50, 0.94) 100%),
+        url("BG.png");
+      color: #FFFFFF;
+    }
+
+    [data-theme="dark"] .hero-eyebrow {
+      background: rgba(11, 43, 38, 0.75);
+      border-color: rgba(255, 255, 255, 0.18);
+      color: #DAF1DE;
+    }
+
+    [data-theme="dark"] .hero-title {
+      color: #FFFFFF;
+    }
+
+    [data-theme="dark"] .hero-title em {
+      background: linear-gradient(135deg, #FFFFFF 0%, #DAF1DE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    [data-theme="dark"] .hero-desc {
+      color: #DAF1DE;
+      font-weight: 500;
+    }
+
+    [data-theme="dark"] .hero-showcase {
+      background: rgba(5, 31, 32, 0.60);
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.20),
+        inset 0 0 14px 0 rgba(255, 255, 255, 0.05),
+        0 16px 40px rgba(0, 0, 0, 0.50);
+    }
+
+    [data-theme="dark"] .mini-tile {
+      background: rgba(22, 56, 50, 0.90);
+      color: #FFFFFF;
+      font-weight: 800;
+      border-color: rgba(142, 182, 155, 0.40);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    [data-theme="dark"] .mini-tile.gold {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #051F20;
+      font-weight: 800;
+    }
+
+    [data-theme="dark"] .mini-tile .tile-pt {
+      color: #DAF1DE;
+      font-weight: 800;
+    }
+
+    [data-theme="dark"] .showcase-score {
+      color: #FFFFFF;
+      font-weight: 800;
+    }
+
+    [data-theme="dark"] .section-title {
+      color: #FFFFFF;
+    }
+
+    [data-theme="dark"] .version-card {
+      background: rgba(5, 31, 32, 0.60);
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.20),
+        inset 0 0 14px 0 rgba(255, 255, 255, 0.05),
+        0 16px 40px rgba(0, 0, 0, 0.50);
+    }
+
+    [data-theme="dark"] .version-card.featured {
+      background: rgba(16, 56, 50, 0.75);
+      border-color: rgba(142, 182, 155, 0.40);
+    }
+
+    [data-theme="dark"] .card-version-tag {
+      color: #DAF1DE;
+      font-weight: 800;
+    }
+
+    [data-theme="dark"] .card-title {
+      color: #FFFFFF;
+    }
+
+    [data-theme="dark"] .card-desc {
+      color: #DAF1DE;
+      font-weight: 500;
+    }
+
+    [data-theme="dark"] .btn-secondary {
+      background: rgba(22, 56, 50, 0.90);
+      color: #FFFFFF;
+      font-weight: 700;
+      border-color: rgba(142, 182, 155, 0.40);
+    }
+
+    [data-theme="dark"] .page-footer {
+      color: #DAF1DE;
+    }
+  </style>
+  <script src="theme.js"></script>
+</head>
+<body>
+
+  <!-- Ambient Light Orbs for Refraction -->
+  <div class="ambient-glow ambient-glow-1"></div>
+  <div class="ambient-glow ambient-glow-2"></div>
+  <div class="ambient-glow ambient-glow-3"></div>
+
+  <!-- Frosted Glass Navbar -->
+  <nav class="app-nav">
+    <a class="app-nav__brand" href="index.html">
+      <span class="brand-dot"></span>
+      A-Math Solution
+    </a>
+    <div class="app-nav__right">
+      <div class="app-nav__versions">
+        <a class="app-nav__link is-active" href="index.html">Home</a>
+        <a class="app-nav__link" href="index-V1.html">V1</a>
+        <a class="app-nav__link" href="index-V2.html">V2</a>
+      </div>
+      <!-- DEV TOOLS: Font Style Switcher (Can be commented out later) -->
+      <!-- <button class="font-toggle-btn" id="fontToggleBtn" onclick="toggleFontTheme()" title="Switch Font Style (Dev Tool)" aria-label="Switch font style">
+        <span class="font-toggle-icon">🔤</span>
+        <span class="font-toggle-label">Modern Glass</span> -->
+      </button>
+      <!-- END DEV TOOLS -->
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="page-container">
+
+    <!-- ── Hero Section ── -->
+    <section class="hero">
+      <!-- <div class="hero-eyebrow">
+        <span>✨</span> A-Math Solution Solver
+      </div> -->
+      <h1 class="hero-title">
+        Master Every Turn.<br>
+        <em>Find Every Solution.</em>
+      </h1>
+      <p class="hero-desc">
+        Calculate high-value A-Math formulas, uncover hidden Bingos, and optimize your score with instant algorithmic precision.
+      </p>
+
+      <!-- 8-Tile Bingo Equation Showcase (17 + 18 = 35) -->
+      <div class="hero-showcase">
+        <div class="showcase-tiles">
+          <div class="mini-tile">1<span class="tile-pt">1</span></div>
+          <div class="mini-tile">7<span class="tile-pt">2</span></div>
+          <div class="mini-tile">+<span class="tile-pt">2</span></div>
+          <div class="mini-tile">1<span class="tile-pt">1</span></div>
+          <div class="mini-tile">8<span class="tile-pt">2</span></div>
+          <div class="mini-tile">=<span class="tile-pt">1</span></div>
+          <div class="mini-tile">3<span class="tile-pt">1</span></div>
+          <div class="mini-tile gold">5<span class="tile-pt">2</span></div>
+        </div>
+        <div class="showcase-stats">
+          <div class="showcase-score">52 pts</div>
+          <div class="showcase-bingo-badge">Bingo +40 (8 Tiles)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Version Selection Section ── -->
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">Select Solver Version</h2>
+      </div>
+
+      <div class="version-grid">
+
+        <!-- Version 1 (V1) -->
+        <a class="version-card" href="index-V1.html">
+          <div class="card-top-banner"></div>
+          <div class="card-content">
+            <div>
+              <div class="card-tag-row">
+                <span class="card-version-tag">V1 Classic</span>
+              </div>
+              <h3 class="card-title">Version 1</h3>
+              <p class="card-desc">
+                Standard Bingo 8 and Fixed Position solver with modal tile selector, sequence preview, and score ranking.
+              </p>
+            </div>
+            <div class="card-action-btn btn-secondary">
+              Launch V1 &rarr;
+            </div>
+          </div>
+        </a>
+
+        <!-- Version 2 (V2) -->
+        <a class="version-card featured" href="index-V2.html">
+          <div class="card-top-banner"></div>
+          <div class="card-content">
+            <div>
+              <div class="card-tag-row">
+                <span class="card-version-tag">V2 Advanced</span>
+                <span class="badge-featured">Recommended</span>
+              </div>
+              <h3 class="card-title">Version 2</h3>
+              <p class="card-desc">
+                Segment builder with stepper controls, board multipliers, min-tile filter, and point badges.
+              </p>
+            </div>
+            <div class="card-action-btn btn-primary">
+              Launch V2 &rarr;
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="page-footer">
+    A-Math Solution Solver
+  </footer>
+
+</body>
+</html>

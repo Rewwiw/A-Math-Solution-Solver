@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A-Math Solution — V1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display:ital@0;1&family=Kanit:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="styles-V1.css">
+  <script src="theme.js"></script>
+</head>
+
+<body>
+  <nav class="app-nav">
+    <a class="app-nav__brand" href="index.html">
+      <span class="brand-dot"></span>
+      A-Math Solution
+    </a>
+    <div class="app-nav__right">
+      <div class="app-nav__versions">
+        <a class="app-nav__link" href="index.html">Home</a>
+        <a class="app-nav__link is-active" href="index-V1.html">V1</a>
+        <a class="app-nav__link" href="index-V2.html">V2</a>
+      </div>
+      <!-- DEV TOOLS: Font Style Switcher (Can be commented out later) -->
+      <!-- <button class="font-toggle-btn" id="fontToggleBtn" onclick="toggleFontTheme()" title="Switch Font Style (Dev Tool)" aria-label="Switch font style">
+        <span class="font-toggle-icon">🔤</span>
+        <span class="font-toggle-label">Modern Glass</span> -->
+      </button>
+      <!-- END DEV TOOLS -->
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="mode">
+      <button id="mode1" class="active">Bingo 8</button>
+      <button id="mode2">Bingo Fix Position</button>
+    </div>
+
+    <div class="show-pawn-input" onclick="selectSlotTopPawn()"></div>
+    <div class="lock-container" id="lockContainer"></div>
+    <button id="addLock" class="lock-add" style="display:none;">+ Add Lock Position</button>
+    <div class="seq-preview-wrap" id="seqPreview" style="display:none;"></div>
+
+    <div class="pawn">
+      <input type="button" value="1">
+      <input type="button" value="2">
+      <input type="button" value="3">
+      <input type="button" value="4">
+      <input type="button" value="5">
+      <input type="button" value="+">
+    </div>
+
+    <div class="pawn">
+      <input type="button" value="6">
+      <input type="button" value="7">
+      <input type="button" value="8">
+      <input type="button" value="9">
+      <input type="button" value="10">
+      <input type="button" value="-">
+    </div>
+
+    <div class="pawn">
+      <input type="button" value="11">
+      <input type="button" value="12">
+      <input type="button" value="13">
+      <input type="button" value="14">
+      <input type="button" value="15">
+      <input type="button" value="x">
+    </div>
+
+    <div class="pawn">
+      <input type="button" value="16">
+      <input type="button" value="17">
+      <input type="button" value="18">
+      <input type="button" value="19">
+      <input type="button" value="20">
+      <input type="button" value="÷">
+    </div>
+
+    <div class="pawn">
+      <input type="button" value="0" class="zero">
+      <input type="button" value="+/-">
+      <input type="button" value="x/÷">
+      <input type="button" value="?">
+      <input type="button" value="=">
+    </div>
+
+    <div class="control">
+      <input type="button" value="Back">
+      <input type="button" value="Clear">
+      <input type="button" value="Submit">
+    </div>
+  </div>
+
+  <!-- Tile Selector Modal / Popup for Mode 2 -->
+  <div class="tile-modal-overlay" id="tileModalOverlay" onclick="handleTileModalBackdrop(event)">
+    <div class="tile-modal-card">
+      <div class="tile-modal-header">
+        <span class="tile-modal-title">Select Locked Tile</span>
+        <button class="tile-modal-close" onclick="closeTileModal()">&times;</button>
+      </div>
+      <div class="pawn pawn-modal" id="modalPawnPad"></div>
+      <div class="tile-modal-actions">
+        <button class="tile-modal-clear-btn" onclick="clearSelectedLockSlot()">Clear Tile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-card">
+      <button class="loading-cancel-btn" onclick="cancelComputation()" title="Cancel calculation">&times;</button>
+      <div class="loading-title">Computing</div>
+      <div class="loading-spinner"></div>
+      <div class="loading-pct" id="loadingPct">0%</div>
+      <div class="loading-bar-track">
+        <div class="loading-bar-fill" id="loadingBarFill"></div>
+      </div>
+      <div class="loading-detail" id="loadingDetail">Preparing...</div>
+    </div>
+  </div>
+
+  <div class="solutions-container" id="solutionsContainer"></div>
+  <script src="script-V1.js"></script>
+</body>
+
+</html>
