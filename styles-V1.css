@@ -65,6 +65,42 @@ button, input, select, textarea {
   font-family: inherit;
 }
 
+/* ── Accessibility & Focus Visible (Web Interface Guidelines) ── */
+:focus-visible {
+  outline: 2px solid var(--c-mid-2);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(142, 182, 155, 0.35);
+}
+
+button:focus-visible,
+input:focus-visible,
+.pawn-btn-wrap:focus-within,
+.pawn input:focus-visible,
+.control input:focus-visible,
+.preview-tile-box:focus-visible {
+  outline: 2px solid var(--c-mid-2);
+  outline-offset: 2px;
+}
+
+/* Mobile input font-size to prevent iOS Safari auto-zoom */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── Reduced Motion Accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Ambient glow blobs */
 body::before {
   content: "";
@@ -204,7 +240,28 @@ body::after {
   padding: 0 4px;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pawn-slot:hover {
+  transform: translateY(-1px);
+}
+
+.pawn-slot.tap-pending {
+  border-color: rgba(220, 38, 38, 0.70) !important;
+  background: rgba(254, 226, 226, 0.95) !important;
+  color: #b91c1c !important;
+  box-shadow: 0 0 0 2.5px rgba(220, 38, 38, 0.35) !important;
+  animation: tapPendingPulse 0.3s ease infinite alternate;
+}
+
+@keyframes tapPendingPulse {
+  0% { transform: scale(0.95); }
+  100% { transform: scale(1.03); }
 }
 
 /* Golden Glass state for locked tiles in v1.0.0 */
@@ -598,6 +655,7 @@ body::after {
   padding: 22px;
   height: 570px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   width: 360px;
   font-family: 'Kanit', sans-serif;
   display: flex;
@@ -787,6 +845,7 @@ body::after {
   justify-content: center;
   align-items: center;
   padding: 16px;
+  overscroll-behavior: contain;
 }
 
 .tile-modal-overlay.active {
@@ -808,6 +867,7 @@ body::after {
     inset 0 1px 1px rgba(255, 255, 255, 1);
   position: relative;
   animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overscroll-behavior: contain;
 }
 
 @keyframes modalPop {
@@ -894,6 +954,7 @@ body::after {
   z-index: 99999;
   justify-content: center;
   align-items: center;
+  overscroll-behavior: contain;
 }
 
 .loading-overlay.active {
@@ -1171,6 +1232,13 @@ body::after {
   font-weight: 800;
   border-color: rgba(142, 182, 155, 0.40);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .pawn-slot.tap-pending {
+  border-color: rgba(239, 68, 68, 0.85) !important;
+  background: rgba(153, 27, 27, 0.85) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 0 0 2.5px rgba(239, 68, 68, 0.45) !important;
 }
 
 [data-theme="dark"] .pawn-slot.locked {

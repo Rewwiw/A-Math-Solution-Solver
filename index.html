@@ -596,6 +596,31 @@
     [data-theme="dark"] .page-footer {
       color: #DAF1DE;
     }
+
+    /* ── Accessibility & Ergonomics (.agents Guidelines) ── */
+    :focus-visible {
+      outline: 2px solid var(--c-mid-2);
+      outline-offset: 2px;
+    }
+
+    .version-card,
+    .card-action-btn,
+    .app-nav__link,
+    .theme-toggle-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
   <script src="theme.js"></script>
 </head>
@@ -618,11 +643,13 @@
         <a class="app-nav__link" href="index-V1.html">V1</a>
         <a class="app-nav__link" href="index-V2.html">V2</a>
       </div>
-      <!-- DEV TOOLS: Font Style Switcher (Can be commented out later) -->
-      <!-- <button class="font-toggle-btn" id="fontToggleBtn" onclick="toggleFontTheme()" title="Switch Font Style (Dev Tool)" aria-label="Switch font style">
+      <!-- DEV TOOLS: Font Style Switcher (Uncomment to enable) -->
+      <!--
+      <button class="font-toggle-btn" id="fontToggleBtn" onclick="toggleFontTheme()" title="Switch Font Style (Dev Tool)" aria-label="Switch font style">
         <span class="font-toggle-icon">🔤</span>
-        <span class="font-toggle-label">Modern Glass</span> -->
+        <span class="font-toggle-label">Modern Glass</span>
       </button>
+      -->
       <!-- END DEV TOOLS -->
       <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
         <span class="theme-icon">🌙</span>
@@ -702,7 +729,7 @@
               </div>
               <h3 class="card-title">Version 2</h3>
               <p class="card-desc">
-                Segment builder with stepper controls, board multipliers, min-tile filter, and point badges.
+                Advanced segment builder with subsegment group matching, board multipliers, single-tap empty picker (0–8), and collision validation.
               </p>
             </div>
             <div class="card-action-btn btn-primary">

@@ -52,6 +52,19 @@
   padding: 0;
 }
 
+:focus-visible {
+  outline: 2px solid var(--c-mid-2);
+  outline-offset: 2px;
+}
+
+.app-nav__link,
+.theme-toggle-btn,
+.font-toggle-btn,
+.app-nav__brand {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--font-body);
   padding-top: var(--nav-h);

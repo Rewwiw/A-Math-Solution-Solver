@@ -46,12 +46,43 @@ function tilePoint(t) {
 // 3. UI Rendering & Input Interactions
 // ══════════════════════════════════════════════════════════════
 
+let lastV1RackTapTime = 0;
+let lastV1RackTapIdx = -1;
+let v1RackTapTimeout = null;
+
 function render() {
   inputBox.innerHTML = "";
-  filled.forEach(v => {
+  filled.forEach((v, idx) => {
     const div = document.createElement("div");
     div.className = "pawn-slot";
     div.textContent = v;
+    div.title = "Double-tap to remove this tile";
+
+    div.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const now = Date.now();
+      if (lastV1RackTapIdx === idx && (now - lastV1RackTapTime) < 380) {
+        // Double tap confirmed -> remove tile
+        if (v1RackTapTimeout) clearTimeout(v1RackTapTimeout);
+        filled.splice(idx, 1);
+        lastV1RackTapIdx = -1;
+        lastV1RackTapTime = 0;
+        render();
+      } else {
+        lastV1RackTapIdx = idx;
+        lastV1RackTapTime = now;
+
+        inputBox.querySelectorAll(".pawn-slot.tap-pending").forEach(s => s.classList.remove("tap-pending"));
+        div.classList.add("tap-pending");
+
+        if (v1RackTapTimeout) clearTimeout(v1RackTapTimeout);
+        v1RackTapTimeout = setTimeout(() => {
+          div.classList.remove("tap-pending");
+          lastV1RackTapIdx = -1;
+        }, 380);
+      }
+    });
+
     inputBox.appendChild(div);
   });
 
@@ -559,6 +590,11 @@ async function runAMath() {
   shownCount = 0;
   const seenKey = new Set();
   let locks = [];
+
+  if (filled.length === 0) {
+    alert("Please enter tiles on the rack first!");
+    return;
+  }
 
   if (mode === 'mode2') {
     document.querySelectorAll(".lock-pair").forEach(pair => {

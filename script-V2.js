@@ -177,15 +177,11 @@ function buildPad() {
 }
 
 function handlePadClick(v) {
-  if (currentTarget === "top") {
-    if (filled.length < maxFilled) { filled.push(v); renderTop(); }
-    else alert("Rack is full!");
-  } else if (currentTarget && currentTarget._segIdx !== undefined) {
-    const si = currentTarget._segIdx, ti = currentTarget._tileIdx;
-    segments[si].tiles[ti] = v;
-    if (ti+1 < segments[si].tiles.length && segments[si].tiles[ti+1]==="")
-      currentTarget = { _segIdx: si, _tileIdx: ti+1 };
-    buildSegmentUI();
+  if (filled.length < maxFilled) {
+    filled.push(v);
+    renderTop();
+  } else {
+    alert("Rack is full!");
   }
 }
 
@@ -193,12 +189,46 @@ function handlePadClick(v) {
 // Rack display
 // ══════════════════════════════════════════════════════════════
 
+let lastRackTapTime = 0;
+let lastRackTapIdx = -1;
+let rackTapTimeout = null;
+
 function renderTop() {
   const box = document.getElementById("topDisplay");
   box.innerHTML = "";
-  filled.forEach(v => box.appendChild(makeTileEl(v)));
-  if (currentTarget === "top") box.classList.add("targeting");
-  else box.classList.remove("targeting");
+  filled.forEach((v, idx) => {
+    const el = makeTileEl(v);
+    el.title = "Double-tap to remove this tile";
+
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const now = Date.now();
+      if (lastRackTapIdx === idx && (now - lastRackTapTime) < 380) {
+        // Double tap confirmed -> remove this tile
+        if (rackTapTimeout) clearTimeout(rackTapTimeout);
+        filled.splice(idx, 1);
+        lastRackTapIdx = -1;
+        lastRackTapTime = 0;
+        renderTop();
+      } else {
+        // First tap -> start pending window
+        lastRackTapIdx = idx;
+        lastRackTapTime = now;
+
+        box.querySelectorAll(".pawn-slot.tap-pending").forEach(s => s.classList.remove("tap-pending"));
+        el.classList.add("tap-pending");
+
+        if (rackTapTimeout) clearTimeout(rackTapTimeout);
+        rackTapTimeout = setTimeout(() => {
+          el.classList.remove("tap-pending");
+          lastRackTapIdx = -1;
+        }, 380);
+      }
+    });
+
+    box.appendChild(el);
+  });
+  box.classList.add("targeting");
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -221,10 +251,7 @@ function buildSegmentUI() {
     groupPill.textContent = `Group ${si + 1}`;
     header.appendChild(groupPill);
 
-    header.appendChild(makeEmptyBox(seg.before, v => {
-      segments[si].before = Math.max(0, parseInt(v) || 0);
-      updatePreview();
-    }, "Before"));
+    header.appendChild(makeEmptyBox(seg.before, "Before", si));
 
     const arrow = document.createElement("span");
     arrow.className = "seq-arrow";
@@ -273,15 +300,12 @@ function buildSegmentUI() {
 
   const trailRow = document.createElement("div");
   trailRow.className = "seq-row seq-trail-row";
-  trailRow.appendChild(makeEmptyBox(trailingEmpty, v => {
-    trailingEmpty = Math.max(0, parseInt(v) || 0);
-    updatePreview();
-  }, "After (Trailing Empty)"));
+  trailRow.appendChild(makeEmptyBox(trailingEmpty, "After (Trailing Empty)", "trailing"));
   builder.appendChild(trailRow);
   updatePreview();
 }
 
-function makeEmptyBox(val, onChange, label) {
+function makeEmptyBox(val, label, target) {
   const wrap = document.createElement("div");
   wrap.className = "empty-box";
 
@@ -290,50 +314,66 @@ function makeEmptyBox(val, onChange, label) {
   lbl.textContent = label + ":";
   wrap.appendChild(lbl);
 
-  const stepper = document.createElement("div");
-  stepper.className = "empty-stepper";
-
-  const minusBtn = document.createElement("button");
-  minusBtn.type = "button";
-  minusBtn.className = "empty-step-btn minus-btn";
-  minusBtn.innerHTML = "&minus;";
-  minusBtn.title = "Decrease empty count";
-
-  const inp = document.createElement("input");
-  inp.type = "number";
-  inp.min = "0";
-  inp.value = val;
-  inp.className = "empty-input";
-
-  const plusBtn = document.createElement("button");
-  plusBtn.type = "button";
-  plusBtn.className = "empty-step-btn plus-btn";
-  plusBtn.innerHTML = "+";
-  plusBtn.title = "Increase empty count";
-
-  minusBtn.addEventListener("click", () => {
-    const cur = Math.max(0, (parseInt(inp.value) || 0) - 1);
-    inp.value = cur;
-    onChange(cur);
-  });
-
-  plusBtn.addEventListener("click", () => {
-    const cur = (parseInt(inp.value) || 0) + 1;
-    inp.value = cur;
-    onChange(cur);
-  });
-
-  inp.addEventListener("input", () => {
-    const cur = Math.max(0, parseInt(inp.value) || 0);
-    onChange(cur);
-  });
-
-  stepper.appendChild(minusBtn);
-  stepper.appendChild(inp);
-  stepper.appendChild(plusBtn);
-  wrap.appendChild(stepper);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "empty-count-btn";
+  btn.innerHTML = `${val} <span class="arrow">▾</span>`;
+  btn.title = "Tap to choose empty slots (0–8)";
+  btn.addEventListener("click", () => openEmptyModal(target));
+  wrap.appendChild(btn);
 
   return wrap;
+}
+
+let activeEmptyTarget = null; // segment index number or 'trailing'
+
+function buildEmptyNumberGrid() {
+  const grid = document.getElementById("emptyNumberGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  const currentVal = activeEmptyTarget === 'trailing'
+    ? trailingEmpty
+    : (activeEmptyTarget !== null && segments[activeEmptyTarget] ? segments[activeEmptyTarget].before : 0);
+
+  for (let num = 0; num <= 8; num++) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "empty-num-btn" + (currentVal === num ? " active" : "");
+    btn.textContent = num;
+    btn.addEventListener("click", () => selectEmptyCount(num));
+    grid.appendChild(btn);
+  }
+}
+
+function openEmptyModal(target) {
+  activeEmptyTarget = target;
+  buildEmptyNumberGrid();
+  const modal = document.getElementById("emptyModalOverlay");
+  if (modal) modal.classList.add("active");
+}
+
+function closeEmptyModal() {
+  const modal = document.getElementById("emptyModalOverlay");
+  if (modal) modal.classList.remove("active");
+  activeEmptyTarget = null;
+}
+
+function handleEmptyModalBackdrop(e) {
+  if (e.target.id === "emptyModalOverlay") {
+    closeEmptyModal();
+  }
+}
+
+function selectEmptyCount(count) {
+  if (activeEmptyTarget === 'trailing') {
+    trailingEmpty = count;
+  } else if (activeEmptyTarget !== null && segments[activeEmptyTarget]) {
+    segments[activeEmptyTarget].before = count;
+  }
+  closeEmptyModal();
+  buildSegmentUI();
+  updatePreview();
 }
 
 function makeFixedTileSlot(val, si, ti) {
@@ -348,8 +388,6 @@ function makeFixedTileSlot(val, si, ti) {
     pt.className = "tile-pt"; pt.textContent = tilePoint(val);
     slot.appendChild(pt);
   }
-  if (currentTarget && currentTarget._segIdx===si && currentTarget._tileIdx===ti)
-    slot.classList.add("selected");
   slot.addEventListener("click", () => openTileModal(si, ti));
   return slot;
 }
@@ -377,8 +415,6 @@ function buildModalPad() {
 
 function openTileModal(si, ti) {
   activeModalTarget = { _segIdx: si, _tileIdx: ti };
-  currentTarget = activeModalTarget;
-  buildSegmentUI();
   const modal = document.getElementById("tileModalOverlay");
   if (modal) {
     buildModalPad();
@@ -421,7 +457,10 @@ function clearSelectedTileSlot() {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeTileModal();
+  if (e.key === "Escape") {
+    closeTileModal();
+    closeEmptyModal();
+  }
 });
 
 function addSegment() { segments.push({ before: 0, tiles: [] }); buildSegmentUI(); }
@@ -438,11 +477,13 @@ function removeSegment() {
 
 function computeSeqStructure() {
   const positions = [];
-  for (const seg of segments) {
-    for (let i = 0; i < seg.before; i++) positions.push({ type: 'empty' });
-    for (const t of seg.tiles) positions.push({ type: 'fixed', value: t });
-  }
-  for (let i = 0; i < trailingEmpty; i++) positions.push({ type: 'empty' });
+  segments.forEach((seg, sIdx) => {
+    for (let i = 0; i < seg.before; i++) positions.push({ type: 'empty', segIdx: null });
+    for (let ti = 0; ti < seg.tiles.length; ti++) {
+      positions.push({ type: 'fixed', value: seg.tiles[ti], segIdx: sIdx + 1 });
+    }
+  });
+  for (let i = 0; i < trailingEmpty; i++) positions.push({ type: 'empty', segIdx: null });
   return positions;
 }
 
@@ -499,7 +540,6 @@ function updatePreview() {
 function selectTopTarget() {
   currentTarget = "top";
   renderTop();
-  document.querySelectorAll(".tile-slot.selected").forEach(s => s.classList.remove("selected"));
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -509,11 +549,8 @@ function selectTopTarget() {
 document.querySelectorAll(".control input").forEach(ctrl => {
   ctrl.addEventListener("click", () => {
     if (ctrl.value === "Back") {
-      if (currentTarget === "top") { filled.pop(); renderTop(); }
-      else if (currentTarget && currentTarget._segIdx !== undefined) {
-        segments[currentTarget._segIdx].tiles[currentTarget._tileIdx] = "";
-        buildSegmentUI();
-      }
+      filled.pop();
+      renderTop();
     } else if (ctrl.value === "Clear") {
       filled = []; segments = []; trailingEmpty = 0; bonusMap = {};
       solutions = []; shownCount = 0;
@@ -724,18 +761,17 @@ async function runAMath() {
   const seenKey=new Set();
   _evalCache=new Map();   // reset memo cache
 
-  const minTiles=Math.max(1,parseInt(document.getElementById("minTileInput").value)||1);
   showLoading();
   await yieldFrame();
 
   if (mode==='mode1') {
     const totalRack = filled.length;
-    const workUnits = [];
-    for (let k = totalRack; k >= minTiles; k--) {
-      for (const subset of Combinations(filled, k)) {
-        workUnits.push({ k, subset });
-      }
+    if (totalRack === 0) {
+      hideLoading();
+      alert("Please enter tiles on the rack first!");
+      return;
     }
+    const workUnits = [{ k: totalRack, subset: filled }];
 
     const total = workUnits.length;
     const YIELD_MS = 40;
@@ -767,96 +803,160 @@ async function runAMath() {
     }
     solutions.sort((a, b) => b.score - a.score);
   } else {
-    const positions=computeSeqStructure();
+    const positions = computeSeqStructure();
     if (!positions.length) { hideLoading(); alert("Please define a sequence first."); return; }
-    if (positions.some(p=>p.type==='fixed'&&!p.value)) { hideLoading(); alert("Please fill all fixed tile slots."); return; }
+    if (positions.some(p => p.type === 'fixed' && !p.value)) { hideLoading(); alert("Please fill all fixed tile slots."); return; }
 
-    const gapGroups=[]; let curGap=null;
-    positions.forEach((p,i)=>{
-      if (p.type==='empty') { if (!curGap) { curGap=[]; gapGroups.push(curGap); } curGap.push(i); }
-      else curGap=null;
-    });
+    const rackCount = filled.length;
+    if (rackCount === 0) { hideLoading(); alert("Please add tiles to the rack first."); return; }
 
-    const rackCount=filled.length;
-    if (rackCount===0) { hideLoading(); alert("Please add tiles to the rack first."); return; }
-
-    const slotBonuses=positions.map((p,i)=>p.type==='fixed'?'p1':(bonusMap[i]||'p1'));
-
-    const workUnits=[]; let totalWeight=0;
-    for (let k=1; k<=rackCount; k++) {
-      if (k<minTiles) continue;
-      for (const rackSubset of Combinations(filled,k)) {
-        const permCount=Permutations(rackSubset).length;
-        for (const {dist,offsets} of distributeGen(gapGroups,k)) {
-          workUnits.push({k,rackSubset,dist,offsets,weight:permCount});
-          totalWeight+=permCount;
-        }
+    // Map each group to its span on the board
+    const groupRanges = {};
+    for (let g = 1; g <= segments.length; g++) {
+      const indices = [];
+      positions.forEach((p, idx) => {
+        if (p.type === 'fixed' && p.segIdx === g) indices.push(idx);
+      });
+      if (indices.length > 0) {
+        groupRanges[g] = { min: Math.min(...indices), max: Math.max(...indices) };
       }
     }
 
-    if (!workUnits.length) { hideLoading(); alert(`No combinations use at least ${minTiles} tile(s).`); return; }
+    const allGroupNums = Object.keys(groupRanges).map(Number);
+    const N = positions.length;
+    const validSlices = [];
 
-    setProgress(0,`Approx. ${totalWeight.toLocaleString()} permutations to check`);
-    await yieldFrame();
+    // Find all valid contiguous slices [start, end]
+    for (let start = 0; start < N; start++) {
+      for (let end = start; end < N; end++) {
+        let validSlice = true;
+        const usedGroups = new Set();
 
-    const YIELD_MS=40;
-    let doneWeight=0, lastYield=performance.now();
-
-    for (let wi=0; wi<workUnits.length; wi++) {
-      if (isComputationAborted) { hideLoading(); return; }
-      const {k,rackSubset,dist,offsets,weight}=workUnits[wi];
-
-      const filledSet=new Set();
-      dist.forEach((useCount,gi)=>{ for (let j=0;j<useCount;j++) filledSet.add(gapGroups[gi][offsets[gi]+j]); });
-
-      const active=[];
-      positions.forEach((p,i)=>{ if (p.type==='fixed'||filledSet.has(i)) active.push(i); });
-
-      let contiguous=true;
-      for (let ii=1;ii<active.length;ii++) { if (active[ii]!==active[ii-1]+1){contiguous=false;break;} }
-
-      if (!contiguous||!active.length) {
-        doneWeight+=weight;
-      } else {
-        const subBonuses=active.map(i=>slotBonuses[i]);
-        const sortedFilled=[...filledSet].sort((a,b)=>a-b);
-
-        for (const perm of Permutations(rackSubset)) {
-          const subOrigSeq=active.map(i=>{
-            const p=positions[i];
-            if (p.type==='fixed') return p.value;
-            return perm[sortedFilled.indexOf(i)];
-          });
-
-          if (!ConditionTemplate(subOrigSeq)) { doneWeight++; continue; }
-
-          for (const exp of expandGen(subOrigSeq)) {
-            if (Condition(exp) && Check_Equation(exp)) {
-              const key=exp.join('')+'|'+active.join(',');
-              if (!seenKey.has(key)) {
-                seenKey.add(key);
-                const score=computeScore(subOrigSeq,subBonuses,k);
-                solutions.push({eq:exp.join(''),score,usedTiles:rackSubset,usedCount:k});
-              }
+        for (const g of allGroupNums) {
+          const { min, max } = groupRanges[g];
+          const intersects = !(end < min || start > max);
+          if (intersects) {
+            if (start <= min && end >= max) {
+              usedGroups.add(g);
+            } else {
+              validSlice = false;
+              break;
             }
           }
-          doneWeight++;
         }
-      }
 
-      const now=performance.now();
-      if (now-lastYield>=YIELD_MS) {
-        setProgress((doneWeight/totalWeight)*100,
-          `${doneWeight.toLocaleString()} / ${totalWeight.toLocaleString()} checked — ${solutions.length} found`);
-        await yieldFrame(); lastYield=performance.now();
+        // Boundary Adjacency Rule:
+        // A subsegment cannot directly touch an unused fixed tile at its boundaries (must leave an empty gap)
+        if (start > 0 && positions[start - 1].type === 'fixed') {
+          validSlice = false;
+        }
+        if (end < N - 1 && positions[end + 1].type === 'fixed') {
+          validSlice = false;
+        }
+
+        if (!validSlice || usedGroups.size === 0) continue;
+
+        const emptyIndices = [];
+        for (let i = start; i <= end; i++) {
+          if (positions[i].type === 'empty') emptyIndices.push(i);
+        }
+
+        const k = emptyIndices.length;
+        if (k >= 1 && k <= rackCount) {
+          const unusedGroups = allGroupNums.filter(g => !usedGroups.has(g));
+          validSlices.push({
+            start,
+            end,
+            k,
+            emptyIndices,
+            usedGroups: Array.from(usedGroups).sort((a, b) => a - b),
+            unusedGroups
+          });
+        }
       }
     }
 
-    solutions.sort((a,b)=>b.score-a.score);
+    if (!validSlices.length) {
+      hideLoading();
+      alert("No valid subsegment placements found for the current rack size.");
+      return;
+    }
+
+    const workUnits = [];
+    let totalWeight = 0;
+
+    validSlices.forEach(slice => {
+      const { k } = slice;
+      for (const rackSubset of Combinations(filled, k)) {
+        const permCount = Permutations(rackSubset).length;
+        workUnits.push({
+          slice,
+          rackSubset,
+          weight: permCount
+        });
+        totalWeight += permCount;
+      }
+    });
+
+    setProgress(0, `Approx. ${totalWeight.toLocaleString()} permutations to check`);
+    await yieldFrame();
+
+    const YIELD_MS = 40;
+    let doneWeight = 0, lastYield = performance.now();
+
+    for (let wi = 0; wi < workUnits.length; wi++) {
+      if (isComputationAborted) { hideLoading(); return; }
+      const { slice, rackSubset, weight } = workUnits[wi];
+      const { start, end, emptyIndices, usedGroups, unusedGroups, k } = slice;
+
+      const activeIndices = [];
+      for (let i = start; i <= end; i++) activeIndices.push(i);
+      const subBonuses = activeIndices.map(i => positions[i].type === 'fixed' ? 'p1' : (bonusMap[i] || 'p1'));
+
+      for (const perm of Permutations(rackSubset)) {
+        const subOrigSeq = activeIndices.map(i => {
+          const p = positions[i];
+          if (p.type === 'fixed') return p.value;
+          return perm[emptyIndices.indexOf(i)];
+        });
+
+        if (!ConditionTemplate(subOrigSeq)) { doneWeight++; continue; }
+
+        for (const exp of expandGen(subOrigSeq)) {
+          if (Condition(exp) && Check_Equation(exp)) {
+            const key = exp.join('') + '|' + start + '-' + end;
+            if (!seenKey.has(key)) {
+              seenKey.add(key);
+              const score = computeScore(subOrigSeq, subBonuses, k);
+              solutions.push({
+                eq: exp.join(''),
+                score,
+                usedTiles: rackSubset,
+                usedCount: k,
+                usedGroups,
+                unusedGroups,
+                range: [start, end]
+              });
+            }
+          }
+        }
+        doneWeight++;
+      }
+
+      const now = performance.now();
+      if (now - lastYield >= YIELD_MS) {
+        setProgress((doneWeight / totalWeight) * 100,
+          `${doneWeight.toLocaleString()} / ${totalWeight.toLocaleString()} checked — ${solutions.length} found`);
+        await yieldFrame();
+        lastYield = performance.now();
+      }
+    }
+
+    solutions.sort((a, b) => b.score - a.score);
   }
 
   if (isComputationAborted) { hideLoading(); return; }
-  setProgress(100,`Done — ${solutions.length} solution${solutions.length!==1?'s':''} found`);
+  setProgress(100, `Done — ${solutions.length} solution${solutions.length !== 1 ? 's' : ''} found`);
   await yieldFrame();
   hideLoading();
   renderSolutions();
@@ -901,6 +1001,14 @@ function makeSolutionItem(s) {
     const b = document.createElement("span");
     b.className = "badge-bingo";
     b.textContent = "Bingo";
+    meta.appendChild(b);
+  }
+
+  // Unused groups badge
+  if (s.unusedGroups && s.unusedGroups.length > 0) {
+    const b = document.createElement("span");
+    b.className = "badge-unused";
+    b.textContent = "Unused: " + s.unusedGroups.map(g => `G${g}`).join(", ");
     meta.appendChild(b);
   }
 
@@ -960,20 +1068,6 @@ function renderSolutions() {
 
   if (actions.children.length) sc.appendChild(actions);
   sc.scrollTop=0;
-}
-
-// ══════════════════════════════════════════════════════════════
-// Min-Tile Stepper
-// ══════════════════════════════════════════════════════════════
-
-function stepMinTile(delta) {
-  const input = document.getElementById("minTileInput");
-  if (!input) return;
-  let val = parseInt(input.value, 10);
-  if (isNaN(val)) val = 1;
-  val = Math.max(1, Math.min(9, val + delta));
-  input.value = val;
-  input.dispatchEvent(new Event("change"));
 }
 
 // ══════════════════════════════════════════════════════════════

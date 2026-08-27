@@ -44,25 +44,10 @@
     </div>
 
     <!-- Rack -->
-    <div class="show-pawn-input" id="topDisplay" onclick="selectTopTarget()"></div>
-
-    <!-- Min-tile filter -->
-    <div class="min-tile-row">
-      <label>Show solutions using at least</label>
-      <div class="empty-stepper">
-        <button class="empty-step-btn" onclick="stepMinTile(-1)" type="button" aria-label="Decrease min tiles">&minus;</button>
-        <input type="number" id="minTileInput" class="empty-input" min="1" max="9" value="1">
-        <button class="empty-step-btn" onclick="stepMinTile(1)" type="button" aria-label="Increase min tiles">+</button>
-      </div>
-      <label>tile(s)</label>
-      <span class="hint">(1 = show all)</span>
-    </div>
+    <div class="show-pawn-input targeting" id="topDisplay" onclick="selectTopTarget()"></div>
 
     <!-- Mode 2 panel -->
     <div id="mode2Panel" style="display:none;">
-      <div class="mode2-hint">
-        Define the known tile order, alternating with empty slots.
-      </div>
       <div class="segment-builder" id="segmentBuilder"></div>
       <div class="seg-controls">
         <button class="seg-btn add-seg" onclick="addSegment()">+ Add Group</button>
@@ -93,6 +78,17 @@
       <div class="tile-modal-actions">
         <button class="tile-modal-clear-btn" onclick="clearSelectedTileSlot()">Clear Tile</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Empty Slots Count Modal (0 - 8) -->
+  <div class="tile-modal-overlay" id="emptyModalOverlay" onclick="handleEmptyModalBackdrop(event)">
+    <div class="tile-modal-card" style="max-width: 320px;">
+      <div class="tile-modal-header">
+        <span class="tile-modal-title">Empty Slots (0 – 8)</span>
+        <button class="tile-modal-close" onclick="closeEmptyModal()">&times;</button>
+      </div>
+      <div class="empty-number-grid" id="emptyNumberGrid"></div>
     </div>
   </div>
 
