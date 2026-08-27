@@ -1,0 +1,18 @@
+{
+  "name": "a-math-solution-solver",
+  "version": "2.0.0",
+  "description": "A-Math Solution Solver Web Application",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve .",
+    "serve": "npx serve ."
+  },
+  "keywords": [
+    "a-math",
+    "solver",
+    "board-game"
+  ],
+  "author": "",
+  "license": "ISC"
+}

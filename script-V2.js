@@ -378,7 +378,8 @@ function selectEmptyCount(count) {
 
 function makeFixedTileSlot(val, si, ti) {
   const slot = document.createElement("div");
-  slot.className = "tile-slot" + (val ? " filled" : "");
+  const isSelected = activeModalTarget && activeModalTarget._segIdx === si && activeModalTarget._tileIdx === ti;
+  slot.className = "tile-slot" + (val ? " filled" : "") + (isSelected ? " selected" : "");
   slot._segIdx = si; slot._tileIdx = ti;
   const txt = document.createElement("span");
   txt.textContent = val || "?";
@@ -417,15 +418,21 @@ function openTileModal(si, ti) {
   activeModalTarget = { _segIdx: si, _tileIdx: ti };
   const modal = document.getElementById("tileModalOverlay");
   if (modal) {
+    const titleEl = modal.querySelector(".tile-modal-title");
+    if (titleEl && segments[si]) {
+      titleEl.textContent = `Select Tile for Group ${si + 1} (Slot ${ti + 1}/${segments[si].tiles.length})`;
+    }
     buildModalPad();
     modal.classList.add("active");
   }
+  buildSegmentUI();
 }
 
 function closeTileModal() {
   const modal = document.getElementById("tileModalOverlay");
   if (modal) modal.classList.remove("active");
   activeModalTarget = null;
+  buildSegmentUI();
 }
 
 function handleTileModalBackdrop(e) {
@@ -439,9 +446,14 @@ function selectModalTile(val) {
     const si = activeModalTarget._segIdx;
     const ti = activeModalTarget._tileIdx;
     segments[si].tiles[ti] = val;
-    closeTileModal();
-    buildSegmentUI();
     updatePreview();
+
+    // Auto-advance to the next tile slot in this group if available
+    if (ti + 1 < segments[si].tiles.length) {
+      openTileModal(si, ti + 1);
+    } else {
+      closeTileModal();
+    }
   }
 }
 
@@ -463,7 +475,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-function addSegment() { segments.push({ before: 0, tiles: [] }); buildSegmentUI(); }
+function addSegment() { segments.push({ before: 0, tiles: [""] }); buildSegmentUI(); }
 function removeSegment() {
   if (!segments.length) return;
   segments.pop();
